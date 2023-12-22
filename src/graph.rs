@@ -15,10 +15,40 @@ use std::collections::HashMap;
 use std::fmt::Write;
 use std::marker::PhantomData;
 
+#[derive(Clone)]
+struct ItemsPerSecond(HashMap<String, TimeSeries<u32, u32>>);
+
+impl ItemsPerSecond {
+    fn new() -> ItemsPerSecond {
+        ItemsPerSecond(Default::default())
+    }
+
+    fn initialize_or_increment(&mut self, key: &str, second: usize, value: u32) -> u32 {
+        if !self.0.contains_key(key) {
+            self.0.insert(key.to_string(), TimeSeries::new());
+        }
+        let data = self.0.get_mut(key).unwrap();
+        data.increase_value(second, value);
+        data.get(second)
+    }
+
+    fn insert(&mut self, key: &str, time_series: TimeSeries<u32, u32>) {
+        self.0.insert(key.to_string(), time_series);
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    fn get(&self, key: &str) -> Option<TimeSeries<u32, u32>> {
+        self.0.get(key).cloned()
+    }
+}
+
 /// Used to collect graph data during a load test.
 pub(crate) struct GraphData {
     /// Counts requests per second for each request type.
-    requests_per_second: HashMap<String, TimeSeries<u32, u32>>,
+    requests_per_second: ItemsPerSecond,
     /// Counts errors per second.
     errors_per_second: HashMap<String, TimeSeries<u32, u32>>,
     /// Maintains average response time per second.
@@ -36,7 +66,7 @@ impl GraphData {
     pub(crate) fn new() -> Self {
         trace!("new graph");
         GraphData {
-            requests_per_second: HashMap::new(),
+            requests_per_second: ItemsPerSecond::new(),
             errors_per_second: HashMap::new(),
             average_response_time_per_second: HashMap::new(),
             transactions_per_second: TimeSeries::new(),
@@ -47,17 +77,12 @@ impl GraphData {
 
     /// Record requests per second metric.
     pub(crate) fn record_requests_per_second(&mut self, key: &str, second: usize) {
-        if !self.requests_per_second.contains_key(key) {
-            self.requests_per_second
-                .insert(key.to_string(), TimeSeries::new());
-        }
-        let data = self.requests_per_second.get_mut(key).unwrap();
-        data.increase_value(second, 1);
-
+        let value = self
+            .requests_per_second
+            .initialize_or_increment(key, second, 1);
         debug!(
             "incremented second {} for requests per second counter: {}",
-            second,
-            data.get(second)
+            second, value
         );
     }
 
@@ -141,7 +166,7 @@ impl GraphData {
             "graph-rps",
             "Requests #",
             granular_data,
-            self.requests_per_second.clone(),
+            self.requests_per_second.0.clone(),
         )
     }
 
