@@ -3844,7 +3844,9 @@ mod test {
                 scenario_index: 0,
                 scenario_name: "LoadTestUser",
                 transaction_index: 5.to_string().as_str(),
-                transaction_name: "front page",
+                transaction_name: TransactionName::InheritNameByRequests(
+                    "front page".to_string().to_string(),
+                ),
             },
             "/",
             0,
@@ -3854,7 +3856,10 @@ mod test {
         assert_eq!(request_metric.scenario_index, 0);
         assert_eq!(request_metric.scenario_name, "LoadTestUser");
         assert_eq!(request_metric.transaction_index, "5");
-        assert_eq!(request_metric.transaction_name, "front page");
+        assert_eq!(
+            request_metric.transaction_name.name_for_transaction(),
+            "front page".to_string()
+        );
         assert_eq!(request_metric.raw.url, PATH.to_string());
         assert_eq!(request_metric.name, "/".to_string());
         assert_eq!(request_metric.response_time, 0);

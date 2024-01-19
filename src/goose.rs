@@ -3156,7 +3156,7 @@ mod tests {
         // Initialize scenario.
         let mut transaction = transaction!(test_function_a);
         assert_eq!(transaction.transactions_index, usize::max_value());
-        assert_eq!(transaction.name, "".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "".to_string());
         assert_eq!(transaction.weight, 1);
         assert_eq!(transaction.sequence, 0);
         assert!(!transaction.on_start);
@@ -3164,7 +3164,7 @@ mod tests {
 
         // Name can be set, without affecting other fields.
         transaction = transaction.set_name("foo");
-        assert_eq!(transaction.name, "foo".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "foo".to_string());
         assert_eq!(transaction.weight, 1);
         assert_eq!(transaction.sequence, 0);
         assert!(!transaction.on_start);
@@ -3172,12 +3172,12 @@ mod tests {
 
         // Name can be set multiple times.
         transaction = transaction.set_name("bar");
-        assert_eq!(transaction.name, "bar".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "bar".to_string());
 
         // On start flag can be set, without affecting other fields.
         transaction = transaction.set_on_start();
         assert!(transaction.on_start);
-        assert_eq!(transaction.name, "bar".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "bar".to_string());
         assert_eq!(transaction.weight, 1);
         assert_eq!(transaction.sequence, 0);
         assert!(!transaction.on_stop);
@@ -3191,7 +3191,7 @@ mod tests {
         transaction = transaction.set_on_stop();
         assert!(transaction.on_stop);
         assert!(transaction.on_start);
-        assert_eq!(transaction.name, "bar".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "bar".to_string());
         assert_eq!(transaction.weight, 1);
         assert_eq!(transaction.sequence, 0);
 
@@ -3204,7 +3204,7 @@ mod tests {
         assert_eq!(transaction.weight, 2);
         assert!(transaction.on_stop);
         assert!(transaction.on_start);
-        assert_eq!(transaction.name, "bar".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "bar".to_string());
         assert_eq!(transaction.sequence, 0);
 
         // Weight field can be changed multiple times.
@@ -3217,7 +3217,7 @@ mod tests {
         assert_eq!(transaction.weight, 3);
         assert!(transaction.on_stop);
         assert!(transaction.on_start);
-        assert_eq!(transaction.name, "bar".to_string());
+        assert_eq!(transaction.name.name_for_transaction(), "bar".to_string());
 
         // Sequence field can be changed multiple times.
         transaction = transaction.set_sequence(8);
